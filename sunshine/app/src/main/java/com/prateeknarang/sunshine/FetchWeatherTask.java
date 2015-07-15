@@ -4,6 +4,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.json.JSONException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,13 +16,15 @@ import java.net.URL;
 /**
  * Created by prateek on 7/15/15.
  */
-public class FetchWeatherTask extends AsyncTask<String,Void,Void> {
+//This code is also included in Forecast Fragmenent (Nested Class or Single Ton Class)
+//One string is the input,String[] is the return type.
+public class FetchWeatherTask extends AsyncTask<String,Void,String[]> {
 
-    private final String LOG_TAG =  FetchWeatherTask.class.getSimpleName();
+    private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
 
     @Override
-    protected Void doInBackground(String... params) {
+    protected String[] doInBackground(String... params) {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
 
@@ -31,15 +35,15 @@ public class FetchWeatherTask extends AsyncTask<String,Void,Void> {
             // Construct the URL for the OpenWeatherMap query
             // Possible parameters are avaiable at OWM's forecast API page, at
             // http://openweathermap.org/API#forecast
- //           URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7");
+            //           URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7");
             int count = 7;
 
-            final String FORECAST_BASE_URL="http://api.openweathermap.org/data/2.5/forecast/daily?";
+            final String FORECAST_BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?";
             Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                    .appendQueryParameter("q",params[0])
-                    .appendQueryParameter("mode","json")
-                    .appendQueryParameter("units","metric")
-                    .appendQueryParameter("cnt",Integer.toString(count))
+                    .appendQueryParameter("q", params[0])
+                    .appendQueryParameter("mode", "json")
+                    .appendQueryParameter("units", "metric")
+                    .appendQueryParameter("cnt", Integer.toString(count))
                     .build();
             URL url = new URL(builtUri.toString());
             // Create the request to OpenWeatherMap, and open the connection
@@ -69,13 +73,13 @@ public class FetchWeatherTask extends AsyncTask<String,Void,Void> {
 //                return null;
             }
             forecastJsonStr = buffer.toString();
-            Log.v(LOG_TAG,"Data fetched "+forecastJsonStr);
+            Log.v(LOG_TAG, "Data fetched " + forecastJsonStr);
         } catch (IOException e) {
             Log.e("PlaceholderFragment", "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
             //          return null;
-        } finally{
+        } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
@@ -88,9 +92,29 @@ public class FetchWeatherTask extends AsyncTask<String,Void,Void> {
             }
         }
 
-    return null;
+        /*The newly added return String List Block*/
+        try {
+            JSONParser parser = new JSONParser();
+
+            return parser.getWeatherDataFromJson(forecastJsonStr, 7);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, e.getMessage(), e);
+            e.printStackTrace();
+        }
+
+
+        return null;
     }
 
+    @Override
+    protected void onPostExecute(String[] result) {
+        if (result != null) {
+            for (String i:result) {
 
 
+            }
+        }
+    }
 }
+
+
